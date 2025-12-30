@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventaris - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link active">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Inventaris</h1>
+                <button class="btn btn-primary" onclick="openModal('inventarisModal')">+ Tambah Barang</button>
+            </div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Kelola inventaris dan aset kantor notaris</p>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama Barang</th>
+                            <th>Jumlah</th>
+                            <th>Tanggal Pembelian</th>
+                            <th>Harga Satuan</th>
+                            <th>Total Nilai</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inventarisTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="inventarisModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Inventaris</h3>
+                <button class="close-btn" onclick="closeModal('inventarisModal')">✕</button>
+            </div>
+            <form id="inventarisForm">
+                <div class="form-group">
+                    <label for="namaBarang">Nama Barang *</label>
+                    <input type="text" id="namaBarang" class="form-control" placeholder="Contoh: Printer Canon G2000" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="jumlahBarang">Jumlah *</label>
+                        <input type="number" id="jumlahBarang" class="form-control" placeholder="0" required oninput="calculateTotal()">
+                    </div>
+                    <div class="form-group">
+                        <label for="tanggalPembelian">Tanggal Pembelian *</label>
+                        <input type="date" id="tanggalPembelian" class="form-control" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="hargaSatuan">Harga Satuan (Rp) *</label>
+                    <input type="text" id="hargaSatuan" class="form-control" placeholder="Contoh: 2500000" required 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, ''); calculateTotal()">
+                    <small style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; display: block;">
+                        Masukkan angka tanpa titik atau koma
+                    </small>
+                </div>
+                <div class="form-group">
+                    <label for="totalNilai">Total Nilai (Rp)</label>
+                    <input type="text" id="totalNilai" class="form-control" placeholder="0" readonly 
+                           style="background: rgba(255,255,255,0.05); cursor: not-allowed;">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('inventarisModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        async function loadInventaris() {
+            try {
+                const data = await api.getInventaris();
+                const tbody = document.getElementById('inventarisTableBody');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data inventaris</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map((item, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.nama_barang}</td>
+                        <td>${item.jumlah} unit</td>
+                        <td>${formatDate(item.tanggal_pembelian)}</td>
+                        <td>${formatRupiah(item.harga_satuan)}</td>
+                        <td>${formatRupiah(item.total_nilai)}</td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" title="Hapus" onclick="deleteInventaris(${item.id})">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal memuat data', 'error');
+            }
+        }
+
+        function calculateTotal() {
+            const jumlah = parseFloat(document.getElementById('jumlahBarang').value) || 0;
+            const harga = parseFloat(document.getElementById('hargaSatuan').value.replace(/\D/g, '')) || 0;
+            const total = jumlah * harga;
+            document.getElementById('totalNilai').value = formatRupiah(total).replace('Rp', '').trim();
+        }
+
+        document.getElementById('inventarisForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const jumlah = parseFloat(document.getElementById('jumlahBarang').value);
+            const harga = parseFloat(document.getElementById('hargaSatuan').value.replace(/\D/g, ''));
+            
+            const data = {
+                nama_barang: document.getElementById('namaBarang').value,
+                jumlah: jumlah,
+                tanggal_pembelian: document.getElementById('tanggalPembelian').value,
+                harga_satuan: harga,
+                total_nilai: jumlah * harga
+            };
+            
+            try {
+                await api.createInventaris(data);
+                closeModal('inventarisModal');
+                showNotification('Inventaris berhasil ditambahkan!', 'success');
+                loadInventaris();
+            } catch (error) {
+                showNotification('Gagal: ' + error.message, 'error');
+            }
+        });
+
+        async function deleteInventaris(id) {
+            if (confirm('Yakin hapus inventaris ini?')) {
+                try {
+                    await api.deleteInventaris(id);
+                    showNotification('Inventaris berhasil dihapus!', 'success');
+                    loadInventaris();
+                } catch (error) {
+                    showNotification('Gagal: ' + error.message, 'error');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadInventaris);
+    </script>
+</body>
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Akta - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link active">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Content -->
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Data Akta</h1>
+                <button class="btn btn-primary" onclick="openModal('aktaModal')">+ Tambah Akta</button>
+            </div>
+        </div>
+
+        <!-- Chart Section -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 class="card-title">Statistik Akta 6 Bulan Terakhir</h3>
+            </div>
+            <div style="padding: 1rem;">
+                <canvas id="aktaChart" height="80"></canvas>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="search-filter">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari nomor akta, jenis..." onkeyup="searchAkta()">
+                </div>
+                <select class="form-control" id="filterStatus" style="max-width: 200px;" onchange="loadAkta()">
+                    <option value="">Semua Status</option>
+                    <option value="proses">Proses</option>
+                    <option value="selesai">Selesai</option>
+                </select>
+                <select class="form-control" id="filterJenis" style="max-width: 200px;" onchange="loadAkta()">
+                    <option value="">Semua Jenis</option>
+                    <option value="pendirian">Pendirian PT</option>
+                    <option value="jualbeli">Jual Beli</option>
+                    <option value="hibah">Hibah</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>No. Akta</th>
+                            <th>Jenis Akta</th>
+                            <th>Tanggal</th>
+                            <th>Status</th>
+                            <th>Nilai</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="aktaTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem;">
+                                <div class="loading"></div>
+                                <p style="margin-top: 1rem;">Loading...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Akta -->
+    <div id="aktaModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Data Akta</h3>
+                <button class="close-btn" onclick="closeModal('aktaModal')">✕</button>
+            </div>
+            <form id="aktaForm">
+                <div class="form-group">
+                    <label for="nomorAkta">Nomor Akta *</label>
+                    <input type="text" id="nomorAkta" class="form-control" placeholder="Contoh: AKT-2024-004" required>
+                </div>
+                <div class="form-group">
+                    <label for="jenisAkta">Jenis Akta *</label>
+                    <select id="jenisAkta" class="form-control" required>
+                        <option value="">Pilih Jenis Akta</option>
+                        <option value="pendirian">Pendirian PT</option>
+                        <option value="jualbeli">Jual Beli</option>
+                        <option value="hibah">Hibah</option>
+                        <option value="kuasa">Kuasa</option>
+                        <option value="lainnya">Lainnya</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tanggalAkta">Tanggal *</label>
+                        <input type="date" id="tanggalAkta" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusAkta">Status *</label>
+                        <select id="statusAkta" class="form-control" required>
+                            <option value="proses">Proses</option>
+                            <option value="selesai">Selesai</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="nilaiAkta">Nilai/Honorarium (Rp) *</label>
+                    <input type="text" id="nilaiAkta" class="form-control" placeholder="Contoh: 5000000" required 
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                    <small style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; display: block;">
+                        Masukkan angka tanpa titik atau koma. Contoh: 5000000 untuk 5 juta
+                    </small>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('aktaModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let allAkta = [];
+        let aktaChart = null;
+
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('aktaChart');
+            
+            // Sample data - last 6 months
+            const now = new Date();
+            const months = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push(d.toLocaleDateString('id-ID', { month: 'short', year: 'numeric' }));
+            }
+
+            aktaChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Total Akta',
+                        data: [12, 19, 15, 25, 22, 30], // Sample data
+                        backgroundColor: 'rgba(184, 147, 109, 0.8)',
+                        borderColor: 'rgba(184, 147, 109, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8,
+                        hoverBackgroundColor: 'rgba(184, 147, 109, 1)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(45, 45, 68, 0.95)',
+                            titleColor: '#B8936D',
+                            bodyColor: '#e0e0e0',
+                            borderColor: '#B8936D',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' akta';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#a0a0a0',
+                                stepSize: 5
+                            },
+                            grid: {
+                                color: 'rgba(184, 147, 109, 0.1)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#a0a0a0'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Akta
+        async function loadAkta() {
+            try {
+                const status = document.getElementById('filterStatus').value;
+                const jenis = document.getElementById('filterJenis').value;
+                
+                const params = {};
+                if (status) params.status = status;
+                if (jenis) params.jenis = jenis;
+
+                allAkta = await api.getAkta(params);
+                renderAkta(allAkta);
+            } catch (error) {
+                console.error('Error loading akta:', error);
+                showNotification('Gagal memuat data akta', 'error');
+            }
+        }
+
+        // Render Akta Table
+        function renderAkta(data) {
+            const tbody = document.getElementById('aktaTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data akta</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${item.nomor_akta}</td>
+                    <td>${item.jenis_akta}</td>
+                    <td>${formatDate(item.tanggal)}</td>
+                    <td><span class="badge badge-${item.status === 'selesai' ? 'success' : 'warning'}">${item.status}</span></td>
+                    <td>${formatRupiah(item.nilai)}</td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" title="Hapus" onclick="deleteAkta(${item.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Search Akta
+        const searchAkta = debounce(function() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allAkta.filter(item => 
+                item.nomor_akta.toLowerCase().includes(searchTerm) ||
+                item.jenis_akta.toLowerCase().includes(searchTerm)
+            );
+            renderAkta(filtered);
+        }, 300);
+
+        // Form Submit
+        document.getElementById('aktaForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                nomor_akta: document.getElementById('nomorAkta').value,
+                jenis_akta: document.getElementById('jenisAkta').value,
+                tanggal: document.getElementById('tanggalAkta').value,
+                status: document.getElementById('statusAkta').value,
+                nilai: parseFloat(document.getElementById('nilaiAkta').value)
+            };
+            
+            try {
+                await api.createAkta(data);
+                closeModal('aktaModal');
+                showNotification('Data akta berhasil ditambahkan!', 'success');
+                loadAkta();
+            } catch (error) {
+                showNotification('Gagal menambahkan data: ' + error.message, 'error');
+            }
+        });
+
+        // Delete Akta
+        async function deleteAkta(id) {
+            if (confirm('Yakin hapus akta ini?')) {
+                try {
+                    await api.deleteAkta(id);
+                    showNotification('Akta berhasil dihapus!', 'success');
+                    loadAkta();
+                } catch (error) {
+                    showNotification('Gagal menghapus: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            loadAkta();
+        });
+    </script>
+</body>
+</html>

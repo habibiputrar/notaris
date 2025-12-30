@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link active">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Content -->
+    <div class="container dashboard">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Dashboard</h1>
+            </div>
+            <p style="color: var(--text-muted);">Ringkasan aktivitas dan statistik kantor notaris</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Total Akta</div>
+                        <div class="stat-value" id="totalAkta">0</div>
+                        <div class="stat-change">
+                            <span>↑</span> 12% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">📄</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Pemasukan</div>
+                        <div class="stat-value" id="totalPemasukan">Rp 0</div>
+                        <div class="stat-change">
+                            <span>↑</span> 8% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">💰</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Pengeluaran</div>
+                        <div class="stat-value" id="totalPengeluaran">Rp 0</div>
+                        <div class="stat-change negative">
+                            <span>↓</span> 3% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">📊</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Saldo</div>
+                        <div class="stat-value" id="saldo">Rp 0</div>
+                        <div class="stat-change">
+                            <span>↑</span> 15% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">💵</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Grid -->
+        <div class="card" style="margin-bottom: 2rem;">
+            <div class="card-header">
+                <h3 class="card-title">Statistik Akta 6 Bulan Terakhir</h3>
+            </div>
+            <div style="padding: 2rem 1rem;">
+                <canvas id="aktaChart" style="max-height: 300px;"></canvas>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Akta Terbaru</h3>
+                    <a href="akta.html" class="btn btn-secondary btn-sm">Lihat Semua</a>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>No. Akta</th>
+                                <th>Jenis</th>
+                                <th>Tanggal</th>
+                                <th>Status</th>
+                                <th>Nilai</th>
+                            </tr>
+                        </thead>
+                        <tbody id="recentAkta">
+                            <tr>
+                                <td colspan="5" style="text-align: center; padding: 2rem;">
+                                    <div class="loading"></div>
+                                    <p style="margin-top: 1rem;">Loading...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Aktivitas Terbaru</h3>
+                </div>
+                <div id="recentActivities">
+                    <div style="text-align: center; padding: 2rem;">
+                        <div class="loading"></div>
+                        <p style="margin-top: 1rem;">Loading...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        let aktaChart = null;
+
+        // Initialize Chart
+        function initChart() {
+            const ctx = document.getElementById('aktaChart');
+            
+            // Sample data - last 6 months
+            const now = new Date();
+            const months = [];
+            for (let i = 5; i >= 0; i--) {
+                const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+                months.push(d.toLocaleDateString('id-ID', { month: 'short' }));
+            }
+
+            aktaChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: months,
+                    datasets: [{
+                        label: 'Total Akta',
+                        data: [25, 32, 28, 35, 40, 47],
+                        borderColor: '#B8936D',
+                        backgroundColor: 'rgba(184, 147, 109, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        pointBackgroundColor: '#B8936D',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(45, 45, 68, 0.95)',
+                            titleColor: '#B8936D',
+                            bodyColor: '#e0e0e0',
+                            borderColor: '#B8936D',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.parsed.y + ' akta';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                color: '#a0a0a0',
+                                stepSize: 10
+                            },
+                            grid: {
+                                color: 'rgba(184, 147, 109, 0.1)',
+                                drawBorder: false
+                            }
+                        },
+                        x: {
+                            ticks: {
+                                color: '#a0a0a0'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load Dashboard
+        async function loadDashboard() {
+            try {
+                // Load stats
+                const stats = await api.getDashboardStats();
+                document.getElementById('totalAkta').textContent = stats.totalAkta;
+                document.getElementById('totalPemasukan').textContent = formatRupiah(stats.totalPemasukan);
+                document.getElementById('totalPengeluaran').textContent = formatRupiah(stats.totalPengeluaran);
+                document.getElementById('saldo').textContent = formatRupiah(stats.saldo);
+
+                // Load recent akta
+                const akta = await api.getAkta();
+                const recentAkta = akta.slice(0, 5);
+                const tbody = document.getElementById('recentAkta');
+                
+                if (recentAkta.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data akta</td></tr>';
+                } else {
+                    tbody.innerHTML = recentAkta.map(item => `
+                        <tr>
+                            <td>${item.nomor_akta}</td>
+                            <td>${item.jenis_akta}</td>
+                            <td>${formatDate(item.tanggal)}</td>
+                            <td><span class="badge badge-${item.status === 'selesai' ? 'success' : 'warning'}">${item.status}</span></td>
+                            <td>${formatRupiah(item.nilai)}</td>
+                        </tr>
+                    `).join('');
+                }
+
+                // Load activities
+                const activities = await api.getDashboardActivities();
+                const activitiesDiv = document.getElementById('recentActivities');
+                
+                if (activities.length === 0) {
+                    activitiesDiv.innerHTML = '<p style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada aktivitas</p>';
+                } else {
+                    activitiesDiv.innerHTML = activities.map(item => `
+                        <div class="activity-item">
+                            <div class="activity-title">${item.title}</div>
+                            <div class="activity-description">${item.description}</div>
+                            <div class="activity-time">${formatDate(item.created_at)}</div>
+                        </div>
+                    `).join('');
+                }
+
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                showNotification('Gagal memuat data dashboard', 'error');
+            }
+        }
+
+        // Load on page ready
+        document.addEventListener('DOMContentLoaded', () => {
+            initChart();
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>

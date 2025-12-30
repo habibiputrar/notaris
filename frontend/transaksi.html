@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Keuangan - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link active">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Keuangan</h1>
+                <button class="btn btn-primary" onclick="openModal('transaksiModal')">+ Tambah Transaksi</button>
+            </div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Kelola transaksi pemasukan dan pengeluaran kantor</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Total Pemasukan</div>
+                        <div class="stat-value" id="totalPemasukan">Rp 0</div>
+                        <div class="stat-change">
+                            <span>↑</span> 8% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">💰</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Total Pengeluaran</div>
+                        <div class="stat-value" id="totalPengeluaran">Rp 0</div>
+                        <div class="stat-change negative">
+                            <span>↓</span> 3% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">📊</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-header">
+                    <div class="stat-content">
+                        <div class="stat-label">Saldo Bersih</div>
+                        <div class="stat-value" id="saldo">Rp 0</div>
+                        <div class="stat-change">
+                            <span>↑</span> 15% dari bulan lalu
+                        </div>
+                    </div>
+                    <div class="stat-icon">💵</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Riwayat Transaksi</h3>
+            </div>
+
+            <div class="search-filter">
+                <div class="search-box">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="searchInput" class="form-control" placeholder="Cari transaksi...">
+                </div>
+                <select class="form-control" id="filterJenis" style="max-width: 200px;" onchange="loadTransaksi()">
+                    <option value="">Semua Jenis</option>
+                    <option value="pemasukan">Pemasukan</option>
+                    <option value="pengeluaran">Pengeluaran</option>
+                </select>
+            </div>
+
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Tanggal</th>
+                            <th>Jenis</th>
+                            <th>Keterangan</th>
+                            <th>Kategori</th>
+                            <th>Jumlah</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transaksiTableBody">
+                        <tr>
+                            <td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Transaksi -->
+    <div id="transaksiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Transaksi</h3>
+                <button class="close-btn" onclick="closeModal('transaksiModal')">✕</button>
+            </div>
+            <form id="transaksiForm">
+                <div class="form-group">
+                    <label>Jenis Transaksi *</label>
+                    <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="jenisTransaksi" value="pemasukan" checked>
+                            <span>Pemasukan</span>
+                        </label>
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="jenisTransaksi" value="pengeluaran">
+                            <span>Pengeluaran</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="keteranganTransaksi">Keterangan *</label>
+                    <input type="text" id="keteranganTransaksi" class="form-control" placeholder="Masukkan keterangan" required>
+                </div>
+                <div class="form-group">
+                    <label for="kategoriTransaksi">Kategori</label>
+                    <input type="text" id="kategoriTransaksi" class="form-control" placeholder="Contoh: Gaji, Honorarium, dll">
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="tanggalTransaksi">Tanggal *</label>
+                        <input type="date" id="tanggalTransaksi" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="jumlahTransaksi">Jumlah (Rp) *</label>
+                        <input type="text" id="jumlahTransaksi" class="form-control" placeholder="Contoh: 5000000" required
+                               oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                        <small style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.3rem; display: block;">
+                            Masukkan angka tanpa titik atau koma
+                        </small>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('transaksiModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        let allTransaksi = [];
+
+        async function loadTransaksi() {
+            try {
+                const jenis = document.getElementById('filterJenis').value;
+                const params = jenis ? { jenis } : {};
+
+                allTransaksi = await api.getTransaksi(params);
+                renderTransaksi(allTransaksi);
+
+                // Update stats
+                const stats = await api.getDashboardStats();
+                document.getElementById('totalPemasukan').textContent = formatRupiah(stats.totalPemasukan);
+                document.getElementById('totalPengeluaran').textContent = formatRupiah(stats.totalPengeluaran);
+                document.getElementById('saldo').textContent = formatRupiah(stats.saldo);
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal memuat data', 'error');
+            }
+        }
+
+        function renderTransaksi(data) {
+            const tbody = document.getElementById('transaksiTableBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data transaksi</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = data.map((item, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${formatDate(item.tanggal)}</td>
+                    <td><span class="badge badge-${item.jenis === 'pemasukan' ? 'success' : 'warning'}">${item.jenis}</span></td>
+                    <td>${item.keterangan}</td>
+                    <td>${item.kategori || '-'}</td>
+                    <td style="color: ${item.jenis === 'pemasukan' ? 'var(--success)' : 'var(--error)'}">
+                        ${item.jenis === 'pemasukan' ? '+' : '-'} ${formatRupiah(item.jumlah)}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-icon" title="Hapus" onclick="deleteTransaksi(${item.id})">🗑️</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('transaksiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                jenis: document.querySelector('input[name="jenisTransaksi"]:checked').value,
+                tanggal: document.getElementById('tanggalTransaksi').value,
+                keterangan: document.getElementById('keteranganTransaksi').value,
+                kategori: document.getElementById('kategoriTransaksi').value,
+                jumlah: parseFloat(document.getElementById('jumlahTransaksi').value)
+            };
+            
+            try {
+                await api.createTransaksi(data);
+                closeModal('transaksiModal');
+                showNotification('Transaksi berhasil dicatat!', 'success');
+                loadTransaksi();
+            } catch (error) {
+                showNotification('Gagal: ' + error.message, 'error');
+            }
+        });
+
+        async function deleteTransaksi(id) {
+            if (confirm('Yakin hapus transaksi ini?')) {
+                try {
+                    await api.deleteTransaksi(id);
+                    showNotification('Transaksi berhasil dihapus!', 'success');
+                    loadTransaksi();
+                } catch (error) {
+                    showNotification('Gagal: ' + error.message, 'error');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadTransaksi);
+    </script>
+</body>
+</html>

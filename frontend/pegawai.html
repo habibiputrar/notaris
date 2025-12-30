@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pegawai - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link active">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Data Pegawai</h1>
+                <button class="btn btn-primary" onclick="openModal('pegawaiModal')">+ Tambah Pegawai</button>
+            </div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Kelola data karyawan dan staf kantor</p>
+        </div>
+
+        <div class="card">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Jabatan</th>
+                            <th>Kontak</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="pegawaiTableBody">
+                        <tr><td colspan="7" style="text-align: center; padding: 2rem;">Loading...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div id="pegawaiModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Tambah Pegawai</h3>
+                <button class="close-btn" onclick="closeModal('pegawaiModal')">✕</button>
+            </div>
+            <form id="pegawaiForm">
+                <div class="form-group">
+                    <label for="namaPegawai">Nama Lengkap *</label>
+                    <input type="text" id="namaPegawai" class="form-control" placeholder="Masukkan nama lengkap" required>
+                </div>
+                <div class="form-group">
+                    <label for="jabatanPegawai">Jabatan *</label>
+                    <select id="jabatanPegawai" class="form-control" required>
+                        <option value="">Pilih Jabatan</option>
+                        <option value="Staff Admin">Staff Admin</option>
+                        <option value="Accounting">Accounting</option>
+                        <option value="Legal Staff">Legal Staff</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="kontakPegawai">Nomor Telepon *</label>
+                        <input type="tel" id="kontakPegawai" class="form-control" placeholder="08xx-xxxx-xxxx" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="emailPegawai">Email</label>
+                        <input type="email" id="emailPegawai" class="form-control" placeholder="email@example.com">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('pegawaiModal')">Batal</button>
+                    <button type="submit" class="btn btn-primary">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        async function loadPegawai() {
+            try {
+                const data = await api.getPegawai();
+                const tbody = document.getElementById('pegawaiTableBody');
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 2rem; color: var(--text-muted);">Belum ada data pegawai</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map((item, index) => `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>${item.nama}</td>
+                        <td>${item.jabatan}</td>
+                        <td>${item.kontak}</td>
+                        <td>${item.email || '-'}</td>
+                        <td><span class="badge badge-${item.status_akun === 'aktif' ? 'success' : 'info'}">${item.status_akun}</span></td>
+                        <td>
+                            <div class="action-buttons">
+                                <button class="btn-icon" title="Hapus" onclick="deletePegawai(${item.id})">🗑️</button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal memuat data', 'error');
+            }
+        }
+
+        document.getElementById('pegawaiForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data = {
+                nama: document.getElementById('namaPegawai').value,
+                jabatan: document.getElementById('jabatanPegawai').value,
+                kontak: document.getElementById('kontakPegawai').value,
+                email: document.getElementById('emailPegawai').value,
+                status_akun: 'aktif'
+            };
+            
+            try {
+                await api.createPegawai(data);
+                closeModal('pegawaiModal');
+                showNotification('Pegawai berhasil ditambahkan!', 'success');
+                loadPegawai();
+            } catch (error) {
+                showNotification('Gagal: ' + error.message, 'error');
+            }
+        });
+
+        async function deletePegawai(id) {
+            if (confirm('Yakin hapus pegawai ini?')) {
+                try {
+                    await api.deletePegawai(id);
+                    showNotification('Pegawai berhasil dihapus!', 'success');
+                    loadPegawai();
+                } catch (error) {
+                    showNotification('Gagal: ' + error.message, 'error');
+                }
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPegawai);
+    </script>
+</body>
+</html>

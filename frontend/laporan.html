@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan - Sistem Notaris</title>
+    <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="navbar-brand">
+                <img src="images/logo.png" alt="Logo Notaris">
+                <h2>Notaris System</h2>
+            </div>
+            <ul class="navbar-menu">
+                <li><a href="dashboard.html" class="nav-link">Dashboard</a></li>
+                <li><a href="akta.html" class="nav-link">Data Akta</a></li>
+                <li><a href="transaksi.html" class="nav-link">Keuangan</a></li>
+                <li><a href="inventaris.html" class="nav-link">Inventaris</a></li>
+                <li><a href="pegawai.html" class="nav-link">Pegawai</a></li>
+                <li><a href="laporan.html" class="nav-link active">Laporan</a></li>
+            </ul>
+            <div class="navbar-user">
+                <div class="user-info">
+                    <div class="user-name">Admin Notaris</div>
+                    <div class="user-role">Administrator</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="logout()">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="page-header">
+            <div class="page-title">
+                <h1>Laporan Bulanan</h1>
+            </div>
+            <p style="color: var(--text-muted); margin-top: 0.5rem;">Generate dan cetak laporan bulanan kantor notaris</p>
+        </div>
+
+        <div class="card">
+            <div class="search-filter">
+                <select class="form-control" id="bulanLaporan" style="max-width: 150px;">
+                    <option value="1">Januari</option>
+                    <option value="2">Februari</option>
+                    <option value="3">Maret</option>
+                    <option value="4">April</option>
+                    <option value="5">Mei</option>
+                    <option value="6">Juni</option>
+                    <option value="7">Juli</option>
+                    <option value="8">Agustus</option>
+                    <option value="9">September</option>
+                    <option value="10">Oktober</option>
+                    <option value="11">November</option>
+                    <option value="12" selected>Desember</option>
+                </select>
+                <select class="form-control" id="tahunLaporan" style="max-width: 120px;">
+                    <option value="2024" selected>2024</option>
+                    <option value="2025">2025</option>
+                </select>
+                <button class="btn btn-primary" onclick="generateLaporan()">🔄 Generate Laporan</button>
+            </div>
+        </div>
+
+        <div class="card" id="laporanContent" style="margin-top: 2rem; display: none;">
+            <div style="text-align: center; padding: 2rem; border-bottom: 2px solid var(--primary-gold); margin-bottom: 2rem;">
+                <div class="logo" style="margin: 0 auto 1rem;">N</div>
+                <h2 style="font-size: 2rem; color: var(--primary-gold); margin-bottom: 0.5rem;">LAPORAN BULANAN</h2>
+                <p id="periodeLaporan" style="color: var(--text-muted); font-size: 1.1rem;">Periode: Desember 2024</p>
+                <p style="color: var(--text-muted); font-size: 0.9rem;">Kantor Notaris & PPAT</p>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);">
+                    Ringkasan Operasional
+                </h3>
+                <table style="width: 100%; margin-bottom: 1.5rem;">
+                    <tr>
+                        <td style="padding: 0.8rem; font-weight: 600;">Total Akta Dibuat</td>
+                        <td id="totalAktaLaporan" style="text-align: right; color: var(--primary-gold); font-weight: 600; padding: 0.8rem;">-</td>
+                    </tr>
+                    <tr style="background: rgba(255,255,255,0.02);">
+                        <td style="padding: 0.8rem; font-weight: 600;">Akta Selesai</td>
+                        <td id="aktaSelesaiLaporan" style="text-align: right; color: var(--primary-gold); font-weight: 600; padding: 0.8rem;">-</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 0.8rem; font-weight: 600;">Akta Dalam Proses</td>
+                        <td id="aktaProsesLaporan" style="text-align: right; color: var(--primary-gold); font-weight: 600; padding: 0.8rem;">-</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="margin-bottom: 2rem;">
+                <h3 style="color: var(--primary-gold); margin-bottom: 1rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--border-subtle);">
+                    Ringkasan Keuangan
+                </h3>
+                <table style="width: 100%; margin-bottom: 1.5rem;">
+                    <tr>
+                        <td style="padding: 0.8rem; font-weight: 600;">Total Pemasukan</td>
+                        <td id="pemasukanLaporan" style="text-align: right; color: var(--primary-gold); font-weight: 600; padding: 0.8rem;">Rp 0</td>
+                    </tr>
+                    <tr style="background: rgba(255,255,255,0.02);">
+                        <td style="padding: 0.8rem; font-weight: 600;">Total Pengeluaran</td>
+                        <td id="pengeluaranLaporan" style="text-align: right; color: var(--primary-gold); font-weight: 600; padding: 0.8rem;">Rp 0</td>
+                    </tr>
+                    <tr style="border-top: 2px solid var(--primary-gold);">
+                        <td style="padding: 0.8rem;"><strong>Saldo Akhir Bulan</strong></td>
+                        <td id="saldoLaporan" style="text-align: right; font-weight: 600; padding: 0.8rem;"><strong>Rp 0</strong></td>
+                    </tr>
+                </table>
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: center; margin: 2rem 0;">
+                <button class="btn btn-primary" onclick="window.print()">🖨️ Cetak Laporan</button>
+                <button class="btn btn-secondary" onclick="alert('Fitur export sedang dikembangkan')">📄 Export PDF</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="notification" class="notification">
+        <span id="notificationIcon">✅</span>
+        <span id="notificationText">Operasi berhasil!</span>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/common.js"></script>
+    <script>
+        async function generateLaporan() {
+            const bulan = document.getElementById('bulanLaporan').value;
+            const tahun = document.getElementById('tahunLaporan').value;
+            
+            const namaBulan = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                              'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            document.getElementById('periodeLaporan').textContent = `Periode: ${namaBulan[bulan-1]} ${tahun}`;
+
+            try {
+                const laporan = await api.getLaporan(bulan, tahun);
+                
+                document.getElementById('totalAktaLaporan').textContent = `${laporan.operasional.totalAkta} Akta`;
+                document.getElementById('aktaSelesaiLaporan').textContent = `${laporan.operasional.aktaSelesai} Akta`;
+                document.getElementById('aktaProsesLaporan').textContent = `${laporan.operasional.aktaProses} Akta`;
+                
+                document.getElementById('pemasukanLaporan').textContent = formatRupiah(laporan.keuangan.pemasukan);
+                document.getElementById('pengeluaranLaporan').textContent = formatRupiah(laporan.keuangan.pengeluaran);
+                document.getElementById('saldoLaporan').textContent = formatRupiah(laporan.keuangan.saldo);
+                
+                document.getElementById('laporanContent').style.display = 'block';
+                showNotification('Laporan berhasil di-generate!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('Gagal generate laporan', 'error');
+            }
+        }
+
+        // Set current month
+        const currentMonth = new Date().getMonth() + 1;
+        document.getElementById('bulanLaporan').value = currentMonth;
+    </script>
+</body>
+</html>
